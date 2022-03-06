@@ -1,50 +1,37 @@
-import bodyParser from "body-parser";
-import express from "express";
-import { connect } from "mongoose";
-import { routes } from "./controllers";
-const app = express();
-const port = 1380;
+// import bodyParser from "body-parser";
+// import express from "express";
+import http from "http";
+import { connectToDatabase } from "./schemas";
+import { serveLesan } from "./utils";
+// const app = express();
+const host = "localhost";
+const port = 1396;
 
 async function runServer(): Promise<void> {
-  try {
-    // 4. Connect to MongoDB
-    await connect("mongodb://localhost:27017/mosque");
+  // 4. Connect to MongoDB
 
-    // const doc = new UserModel({
-    //   name: "Bill",
-    //   email: "bill@initech.com",
-    //   avatar: "https://i.imgur.com/dM7Thhn.png",
-    // });
-    // await doc.save();
-    //
-    // console.log(doc.email); // 'bill@initech.com'
-
-    // parse application/json
-    app.use(bodyParser.json());
-
-    app.listen(port, () => {
-      return console.log(`Express is listening at http://localhost:${port}`);
-    });
-    app.get("/", (req, res) => {
-      res.send("Sallam be backend");
-    });
-
-    routes(app);
-  } catch (e) {
-    /*
-    *  @LOG @DEBUG @INFO
-    *  This log written by ::==> {{ syd }}
-    *
-    *  Please remove your log after debugging
-    */
-    console.group("err ------ ");
-    console.log(" ============= ");
-    console.log();
-    console.info(e.message, " ------ ");
-    console.log();
-    console.log(" ============= ");
-    console.groupEnd();
-  }
+  const server = http.createServer(async (req, res) => {
+    try {
+      await connectToDatabase();
+      await serveLesan(req, res);
+    } catch (e) {
+      res.end(`Somthing is wrong : => ${e.message}`);
+    }
+  });
+  server.listen(port, host, () => {
+    console.log(`Server is running on http://${host}:${port}`);
+  });
+  // parse application/json
+  // app.use(bodyParser.json());
+  //
+  // app.listen(port, () => {
+  //   return console.log(`Express is listening at http://localhost:${port}`);
+  // });
+  // app.get("/", (req, res) => {
+  //   res.send("Sallam be backend");
+  // });
+  //
+  // routes(app);
 }
 
 runServer().catch(err => console.log(err));
